@@ -36,3 +36,4 @@ def register():
     db.session.add(user_)
     db.session.commit()
     return response(data={"code": 40101}, msg="注册成功", status=200)
+

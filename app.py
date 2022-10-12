@@ -19,6 +19,10 @@ before_request
 def hello_world():
     return redirect("/user/login")
 
+@app.route("/about")
+def about():
+    return "关于我们"
+
 
 if __name__ == '__main__':
     app.run()
