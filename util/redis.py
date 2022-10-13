@@ -1,7 +1,8 @@
 import redis
 import util.config as config
 
-class RedisDB():
+
+class RedisDB:
     def __init__(self):
         redis_pool = redis.ConnectionPool(host=config.REDIS_HOST, port=config.REDIS_PORT)
         self.__strict_redis = redis.StrictRedis(connection_pool=redis_pool)
