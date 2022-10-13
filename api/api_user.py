@@ -6,9 +6,9 @@ import util.config as config
 from util.redis import redis_db
 from model.BaseModel import db
 
-bp = Blueprint("api_user",__name__,url_prefix='/user')
+user_bp = Blueprint("api_user",__name__,url_prefix='/user')
 
-@bp.post("/login")
+@user_bp.post("/login")
 def login():
     username = request.json.get("username")
     password = request.json.get("password")
@@ -25,7 +25,7 @@ def login():
     else:
         return response(data={"code": 40101}, msg="密码错误", status=401)
 
-@bp.post("/register")
+@user_bp.post("/register")
 def register():
     username = request.json.get("username")
     password = request.json.get("password")
