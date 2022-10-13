@@ -12,10 +12,10 @@ class OperateToken:
         self._private_key = config.SECURITY_KEY
         self.salt = base64.encodebytes(self._private_key.encode('utf8'))
 
-    def create_token(self, user_name):
+    def create_token(self, user_id):
         object_ = safter(self._private_key)
         return object_.dumps({
-            "username": user_name
+            "id": user_id
         }, self.salt)
 
     def decode_token(self, token):
@@ -30,7 +30,7 @@ class OperateToken:
         except:
             return response(data=data, msg="非法授权", status=401)
         print(info)
-        user_ = User.query.filter(User.username == info["username"]).first()
+        user_ = User.query.filter(User.id == info["id"]).first()
         print(user_)
         if not user_:
             return response(data=data, msg="当前用户不存在", status=401)
@@ -38,8 +38,9 @@ class OperateToken:
             if not redis_db.get(token_):
                 return response(data=data, msg="用户授权已过期", status=401)
             g.user = {
-                "id":user_
+                "id": user_.id
             }
+            print("111")
         return None
 
 
