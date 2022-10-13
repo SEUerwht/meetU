@@ -15,5 +15,8 @@ class RedisDB():
     def ttl(self, key):
         return self.__strict_redis.ttl(key)
 
+    def delete(self, key):
+        self.__strict_redis.delete(key)
+
 
 redis_db = RedisDB()

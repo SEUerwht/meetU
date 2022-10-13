@@ -1,4 +1,4 @@
-from flask import Flask,redirect,request
+from flask import Flask, redirect, request
 from api.api_user import user_bp as user_bp
 from model.BaseModel import db
 import util.config as config
@@ -20,7 +20,7 @@ def before_request():
         try:
             token_ = request.headers['token']
         except:
-            return response(data={'code':40101},msg="无访问权限",status=401)
+            return response(data={'code': 40101}, msg="无访问权限", status=401)
         res = operate_token.validate_token(token_)
         return res
     else:
@@ -29,9 +29,11 @@ def before_request():
     if res:
         return res
 
+
 @app.route('/')
 def hello_world():
     return redirect("/user/login")
+
 
 @app.route("/about")
 def about():
