@@ -1,10 +1,10 @@
 from itsdangerous import URLSafeSerializer as safter
 from flask import g
 from model.User import User
-from util.redis import redis_db
-import util.config as config
+from util.redis_util import redis_db
+import config as config
 import base64
-from util.Response import response
+from util.response import response
 
 
 class OperateToken:
