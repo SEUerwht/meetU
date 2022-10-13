@@ -1,5 +1,6 @@
 from flask import Flask, redirect, request
 from api.user_api import user_api as user_api
+from api.message_api import message_api
 from model.BaseModel import db
 import config
 from util.response import response
@@ -12,6 +13,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = config.SQLALCHEMY_DATABASE_URI
 db.init_app(app)
 db.create_all()
 app.register_blueprint(user_api)
+app.register_blueprint(message_api)
 
 
 @app.before_request
