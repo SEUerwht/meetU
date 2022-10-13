@@ -1,8 +1,8 @@
 from flask import Flask, redirect, request
-from api.api_user import user_bp as user_bp
+from api.user_api import user_api as user_api
 from model.BaseModel import db
-import util.config as config
-from util.Response import response
+import config
+from util.response import response
 from util.operate_token import operate_token
 
 app = Flask(__name__)
@@ -11,7 +11,7 @@ ctx.push()
 app.config['SQLALCHEMY_DATABASE_URI'] = config.SQLALCHEMY_DATABASE_URI
 db.init_app(app)
 db.create_all()
-app.register_blueprint(user_bp)
+app.register_blueprint(user_api)
 
 
 @app.before_request
@@ -41,4 +41,4 @@ def about():
 
 
 if __name__ == '__main__':
-    app.run(port=7070)
+    app.run(host="0.0.0.0", port=7070, debug=False, threaded=True)

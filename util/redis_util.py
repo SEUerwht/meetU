@@ -1,5 +1,5 @@
 import redis
-import util.config as config
+import config
 
 
 class RedisDB:
