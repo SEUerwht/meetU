@@ -38,7 +38,7 @@ class OperateToken:
             if not redis_db.get(token_):
                 return response(data=data, msg="用户授权已过期", status=401)
             g.user = {
-                "id": user_
+                "id": user_.id
             }
         return None
 
