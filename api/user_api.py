@@ -40,11 +40,12 @@ def register():
     return response(msg="注册成功")
 
 
-@user_api.post("/logout")
+@user_api.get("/logout")
 def layout():
+    print("1111")
     token_ = request.headers.get('token')
     redis_db.delete(token_)
-    return redirect("/user/login")
+    return response(msg="退出成功")
 
 @user_api.post("update")
 def update():

@@ -1,5 +1,6 @@
 from flask import Flask, redirect, request
 from api.user_api import user_api as user_api
+from api.group_api import group_api as group_api
 from model.BaseModel import db
 import config
 from util.response import response
@@ -12,6 +13,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = config.SQLALCHEMY_DATABASE_URI
 db.init_app(app)
 db.create_all()
 app.register_blueprint(user_api)
+app.register_blueprint(group_api)
 
 
 @app.before_request
@@ -32,7 +34,7 @@ def before_request():
 
 @app.route('/')
 def hello_world():
-    return redirect("/user/login")
+    return response(msg="重定向到登录页面")
 
 
 @app.route("/about")
