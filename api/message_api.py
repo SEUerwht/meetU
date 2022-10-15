@@ -1,5 +1,6 @@
 from flask import Blueprint, request, redirect, g
 from model.Message import Message
+from model.Message import MessageUser
 from util.response import response
 from util.response import model_to_dict
 from model.BaseModel import db
@@ -12,13 +13,18 @@ message_api = Blueprint("message_api", __name__, url_prefix='/message')
 def send_message():
     # s_id = request.json.get("s_id")
     s_id = g.user["id"]  # g的作用是此次请求的全局变量
-    to_id = request.json.get("to_id")
-    if s_id == to_id:
-        return response(msg="发送人不能与接收人一致", status=401)
+    to_ids = request.json.get("to_ids")
+    if len(to_ids) == 1 and to_ids[0] == g.user["id"]:
+        return response(msg="消息不能发送给本人")
     content = request.json.get("content")
     title = request.json.get("title")
-    message_ = Message(s_id=s_id, to_id=to_id, title=title, content=content)
+    message_ = Message(s_id=s_id, title=title, content=content)
     db.session.add(message_)
+    db.session.flush()  # 模拟提交到数据库
+    for to_id in to_ids:
+        if to_id != g.user["id"]:
+            message_user = MessageUser(to_id=to_id, message_id=message_.id)
+            db.session.add(message_user)
     db.session.commit()   # 增，删，改操作之后都要commit
     return response(msg="发送成功")
 
@@ -30,16 +36,27 @@ def get_sender_message():
     page = int(request.args["page"])  # 等价于page = int(request.args.get("page")),但get可以返回NULL,所以必备字段用中括号
     count = int(request.args["count"])
     kw = request.args.get("kw")  # 模糊查询
-
-    q = Message.query.filter(Message.s_id == s_id)  # .all()查询所有
+    q = db.session.query(MessageUser, Message).outerjoin(
+        Message, MessageUser.message_id == Message.id
+    ).filter(
+        Message.s_id == s_id
+    )
+    print(q)
     if kw:
         q = q.filter(
             Message.title.contains(kw)
         )
     messages = q.paginate(page=page, per_page=count, error_out=False).items
+    messages = [
+        {
+            **model_to_dict(e[0]),
+            **model_to_dict(e[1])
+        } for e in messages
+    ]
+    print(messages)
     total = q.count()
     data = {
-        "messages": model_to_dict(messages),
+        "messages": messages,
         "total": total
     }
     return response(data=data, msg="查询成功")
@@ -51,16 +68,25 @@ def get_receiver_message():
     page = int(request.args["page"])  # 等价于page = int(request.args.get("page")),但get可以返回NULL,所以必备字段用中括号
     count = int(request.args["count"])
     kw = request.args.get("kw")  # 模糊查询
-
-    q = Message.query.filter(Message.to_id == to_id)  # .all()查询所有
+    q = db.session.query(MessageUser, Message).outerjoin(
+        Message, MessageUser.id == Message.message_id
+    ).filter(
+        Message.to_id == to_id
+    )
     if kw:
         q = q.filter(
             Message.title.contains(kw)
         )
     messages = q.paginate(page=page, per_page=count, error_out=False).items
+    messages = [
+        {
+            **model_to_dict(e[0]),
+            **model_to_dict(e[1])
+        } for e in messages
+    ]
     total = q.count()
     data = {
-        "messages": model_to_dict(messages),
+        "messages": messages,
         "total": total
     }
     return response(data=data, msg="查询成功")
