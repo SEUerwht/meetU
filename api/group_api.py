@@ -1,9 +1,10 @@
 from flask import Blueprint, request, g
-from model.User import User
 from model.Group import Group
 from model.GroupUser import GroupUser
+from model.Photo import Photo
 from util.response import response
 from model.BaseModel import db
+from service.file_deal import upload_file
 
 
 group_api = Blueprint("group_api", __name__, url_prefix='/group')
@@ -14,8 +15,8 @@ def create_group():
     '''本接口只对管理员开放，作用是创建群组'''
     group_name = request.json.get("group_name")
     admin_id = g.user["id"]
-    message = request.json.get("message")
-    group_ = Group(group_name=group_name, admin_id=admin_id, message=message)
+    group_information = request.json.get("group_information")
+    group_ = Group(group_name=group_name, admin_id=admin_id, group_information=group_information)
     db.session.add(group_)
     db.session.commit()
     return response(msg="创建群组成功")
@@ -163,6 +164,14 @@ def exit_group():
     db.session.commit()
     return response(msg="退出群组成功")
 
-# @group_api.post("/add_photos")
-# def add_photos():
-#
+@group_api.post("/add_photo")
+def add_photo():
+    '''上传照片，管理员和用户接口'''
+    photo = request.files.get("photo")
+    group_id = request.json.get("group_id")
+    post_id = request.json.get("post_id")
+    photo_url = upload_file(photo)
+    photo_ = Photo(group_id=group_id, post_id=post_id, photo_url=photo_url)
+    db.session.add(photo_)
+    db.session.commit()
+    return response(msg="上传照片成功")

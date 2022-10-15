@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, g
 from model.User import User
-from util.response import response
+from util.response import response, model_to_dict
 from util.operate_token import operate_token
 import config as config
 from util.redis_util import redis_db
@@ -22,7 +22,26 @@ def login():
     elif user1.password == password:
         token = operate_token.create_token(user1.id)
         redis_db.set(token, token, config.EXPIRE_TIME)
-        return token
+        user_info = model_to_dict(user1)
+        del user_info["password"]
+        data = {
+            "token": token,
+            "user_info": user_info
+        }
+        # data = {
+        #     "token": token,
+        #     "user_id": id,
+        #     "username": user1.username,
+        #     "phone": user1.phone,
+        #     "email": user1.email,
+        #     "age": user1.age,
+        #     "gender": user1.gender,
+        #     "profit": user1.profit,
+        #     "interest": user1.interest,
+        #     "social_media": user1.social_media,
+        #     "icon": user1.icon
+        # }
+        return response(data=data, msg="登录成功")
     else:
         return response(msg="密码错误", status=401)
 
