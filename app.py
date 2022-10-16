@@ -34,6 +34,19 @@ def before_request():
         return res
 
 
+@app.after_request
+def after_request(res):
+    """双重跨域"""
+    res.access_control_allow_origin = "*"
+    res.access_control_allow_methods = ["GET", "POST", "OPTIONS"]
+    res.access_control_allow_headers = "*"
+    res.access_control_max_age = "7200"
+    res.access_control_allow_credentials = "true"
+    if request.method == "OPTIONS":
+        res.status = 200
+    return res
+
+
 @app.route('/')
 def hello_world():
     return response(msg="重定向到登录页面")
