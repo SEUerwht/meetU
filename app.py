@@ -22,7 +22,7 @@ app.register_blueprint(message_api)
 def before_request():
     if request.path not in config.NOT_CHECK_URL:
         try:
-            token_ = request.headers['token']
+            token_ = request.headers['Authorization']
         except:
             return response(data={'code': 40101}, msg="无访问权限", status=401)
         res = operate_token.validate_token(token_)
