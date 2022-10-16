@@ -61,7 +61,7 @@ def delete_group():
 @group_api.get("/query")
 def query_group():
     '''查询群组信息，该接口对管理员及组员开放'''
-    group_id = request.json.get("group_id")
+    group_id = request.args.get("group_id")
     group = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id).filter(Group.group_id == group_id).first()
     date = {
         "group_info": model_to_dict(group[0]),
@@ -97,9 +97,9 @@ def check_request():
 @group_api.get("/query_checkuser")
 def query_checkuser():
     '''该接口是管理员查看申请加群列表的'''
-    group_id = request.json.get("group_id")
-    page = request.json.get("page")
-    per_page = request.json.get("per_page")
+    group_id = request.args.get("group_id")
+    page = request.args.get("page")
+    per_page = request.args.get("per_page")
     group_admin = Group.query.filter(Group.admin_id == g.user["id"]).first()
     if not group_admin:
         return response(msg="您不是管理员，没有相关权限")
@@ -133,9 +133,9 @@ def delete_user():
 @group_api.get("/query_user")
 def query_alluser():
     '''该接口是查看群组成员，管理员和组员都可以使用'''
-    group_id = request.json.get("group_id")
-    page = request.json.get("page")
-    per_page = request.json.get("per_page")
+    group_id = request.args.get("group_id")
+    page = request.args.get("page")
+    per_page = request.args.get("per_page")
     group_ = Group.query.filter(Group.group_id == group_id).first()
     if not group_:
         return response(msg="该群组不存在")
@@ -208,8 +208,8 @@ def add_photo():
 @group_api.get("/query_photo")
 def query_photo():
     '''查看照片，管理员和群员都可以使用'''
-    group_id = request.json.get("group_id")
-    post_id = request.json.get("post_id")
+    group_id = request.args.get("group_id")
+    post_id = request.args.get("post_id")
     if not post_id:
         photos = Photo.query.filter(Photo.group_id == group_id).all()
         return response(data=photos, msg="已返回所有照片")

@@ -2,7 +2,7 @@ from model.BaseModel import BaseModel, db
 
 
 class Group(BaseModel):
-    __tablename__ = "group_admin"
+    __tablename__ = "group"
     group_id = db.Column(db.Integer, primary_key=True, comment="群组id")
     group_name = db.Column(db.String(30), index=True, nullable=False, comment="群组名称")
     admin_id = db.Column(db.Integer, index=True, nullable=False, comment="群组管理员")
