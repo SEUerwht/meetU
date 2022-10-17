@@ -68,7 +68,7 @@ def query_group():
     if not group:
         return response(msg="没有找到对应群组")
     date = {
-        "group_info": model_to_dict(group[0]),
+        **model_to_dict(group[0]),
         "admin_name": group[1]
     }
     if not group:
@@ -85,7 +85,7 @@ def query_allgroup():
     data_group = []
     for group in groups:
         data_group.append({
-            "group_info": model_to_dict(group[0]),
+            **model_to_dict(group[0]),
             "admin_name": group[1]
         })
     return response(data={
@@ -106,7 +106,7 @@ def query_groupbytype():
     data_group = []
     for group in groups:
         data_group.append({
-            "group_info": model_to_dict(group[0]),
+            **model_to_dict(group[0]),
             "admin_name": group[1]
         })
     return response(data={
