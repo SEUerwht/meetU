@@ -78,7 +78,7 @@ def query_group():
 @group_api.get("/query_allgroup")
 def query_allgroup():
     page = int(request.args.get("page"))
-    count = int(request.args.get("total"))
+    count = int(request.args.get("count"))
     group_ = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id)
     groups = group_.paginate(page=page, count=count, error_out=False).items
     total = group_.count()
@@ -96,7 +96,7 @@ def query_allgroup():
 @group_api.get("query_groupbytype")
 def query_groupbytype():
     page = int(request.args.get("page"))
-    count = int(request.args.get("total"))
+    count = int(request.args.get("count"))
     group_type = request.args.get("group_type")
     group_ = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id).filter(
         Group.group_type == group_type
@@ -142,7 +142,7 @@ def query_checkuser():
     '''该接口是管理员查看申请加群列表的'''
     group_id = int(request.args.get("group_id"))
     page = int(request.args.get("page"))
-    count = request.args.get("total")
+    count = request.args.get("count")
     group_admin = Group.query.filter(Group.admin_id == g.user["id"]).first()
     if not group_admin:
         return response(msg="您不是管理员，没有相关权限")
@@ -178,7 +178,7 @@ def query_alluser():
     '''该接口是查看群组成员，管理员和组员都可以使用'''
     group_id = request.args.get("group_id")
     page = int(request.args.get("page"))
-    count = int(request.args.get("total"))
+    count = int(request.args.get("count"))
     group_ = Group.query.filter(Group.id == group_id).first()
     if not group_:
         return response(msg="该群组不存在")
@@ -189,7 +189,7 @@ def query_alluser():
         db.session.commit()
     group_user = db.session.query(GroupUser, User.username).outerjoin(User, GroupUser.user_id == User.id).filter(GroupUser.group_id == group_id).filter(GroupUser.user_allow == 1)
     date_user = []
-    users = group_user.paginate(page=page, cout=cout, error_out=False).items
+    users = group_user.paginate(page=page, count=count, error_out=False).items
     total = group_user.count()
     for i in users:
         temp = {
