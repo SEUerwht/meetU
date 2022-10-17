@@ -33,7 +33,7 @@ def update_group():
     user_id = g.user["id"]
     group_ = Group.query.filter(Group.admin_id == user_id).first()
     if not group_:
-        return response(msg="您不是管理员，所以没有权限")
+        return response(msg="您不是管理员，所以没有权限", status=400)
     else:
         group_.group_name = group_name
         group_.group_position = group_position
@@ -50,7 +50,7 @@ def delete_group():
     user_id = g.user["id"]
     user_ = Group.query.filter(Group.admin_id == user_id).filter(Group.id == group_id).first()
     if not user_:
-        return response(msg="您没有权限或者该群组不存在")
+        return response(msg="您没有权限或者该群组不存在", status=400)
     else:
         group = Group.query.filter(Group.id == group_id).first()
         group_user = GroupUser.query.filter(GroupUser.group_id == group_id).all()
@@ -66,13 +66,13 @@ def query_group():
     group_id = request.args.get("group_id")
     group = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id).filter(Group.id == group_id).first()
     if not group:
-        return response(msg="没有找到对应群组")
+        return response(msg="没有找到对应群组", status=400)
     date = {
         **model_to_dict(group[0]),
         "admin_name": group[1]
     }
     if not group:
-        return response(msg="没有查询到相应的群组")
+        return response(msg="没有查询到相应的群组", status=400)
     return response(data=date, msg="查询单个group信息成功")
 
 @group_api.get("/query_allgroup")
@@ -122,16 +122,16 @@ def check_request():
     user_allow = request.json.get("user_allow")
     admin_ = Group.query.filter(Group.id == group_id).first()
     if not admin_ or admin_.admin_id != g.user["id"]:
-        return response(msg="没有查询到相应的群组或您没有权限")
+        return response(msg="没有查询到相应的群组或您没有权限", status=400)
     if user_allow == 0:
         group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == user_id).first()
         db.session.delete(group_user)
         db.session.commit()
-        return response(msg="已拒绝该用户加群")
+        return response(msg="已拒绝该用户加群", status=400)
     else:
         group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == user_id).first()
         if not group_user:
-            return response(msg="没有找到该用户")
+            return response(msg="没有找到该用户", status=400)
         group_user.user_allow = 1
         admin_.group_nums += 1
         db.session.commit()
@@ -145,7 +145,7 @@ def query_checkuser():
     count = request.args.get("count")
     group_admin = Group.query.filter(Group.admin_id == g.user["id"]).first()
     if not group_admin:
-        return response(msg="您不是管理员，没有相关权限")
+        return response(msg="您不是管理员，没有相关权限", status=400)
     group_user = db.session.query(GroupUser, User).outerjoin(User, GroupUser.user_id == User.id).filter(
         group_id == GroupUser.group_id
     ).filter(
@@ -166,7 +166,7 @@ def delete_user():
     user_id = request.json.get("user_id")
     admin_ = Group.query.filter(Group.admin_id == g.user["id"]).first()
     if not admin_:
-        return response(msg="您不是管理员，没有相关权限")
+        return response(msg="您不是管理员，没有相关权限", status=400)
     group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == user_id).first()
     db.session.delete(group_user)
     admin_.group_nums -= 1
@@ -208,15 +208,15 @@ def join_group():
     group_id = request.json.get("group_id")
     group = Group.query.filter(Group.id == group_id).first()
     if not group:
-        return response(msg="没有查询到相应的群组")
+        return response(msg="没有查询到相应的群组", status=400)
     if group.admin_id == g.user["id"]:
-        return response("您是该群的管理员")
+        return response(msg="您是该群的管理员", status=400)
     user_id = g.user["id"]
     user_exist = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == g.user["id"]).first()
     if user_exist and user_exist.user_allow == 1:
-        return response(msg="已加入该群当中")
+        return response(msg="已加入该群当中", status=400)
     if user_exist and user_exist.user_allow == 0:
-        return response(msg="正在等待管理员的审核")
+        return response(msg="正在等待管理员的审核", status=400)
     group_user = GroupUser(group_id = group_id, user_id=user_id)
     db.session.add(group_user)
     db.session.commit()
@@ -228,7 +228,7 @@ def exit_group():
     group_id = request.json.get("group_id")
     group = Group.query.filter(Group.id == group_id).first()
     if not group:
-        return response(msg="没有查询到相应的群组")
+        return response(msg="没有查询到相应的群组", status=400)
     group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == g.user["id"]).first()
     # print(group_user)
     db.session.delete(group_user)
@@ -267,7 +267,7 @@ def delete_photo():
     photo_id = request.json.get("photo_id")
     admin_ = Group.query.filter(Group.id == group_id).first()
     if admin_.admin_id != g.user["id"]:
-        return response(msg="您不是管理员，无权进行操作")
+        return response(msg="您不是管理员，无权进行操作", status=400)
     photo = Photo.query.filter(Photo.id_ == photo_id).first()
     db.session.delete(photo)
     db.session.commit()
