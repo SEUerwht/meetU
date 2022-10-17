@@ -86,7 +86,7 @@ def query_allgroup():
     if not group_type:
         group_ = group_.filter(Group.group_type == group_type)
     if not kw:
-        group_ = group_.filter(Group.detail.contains(kw))
+        group_ = group_.filter(Group.group_name.contains(kw))
     groups = group_.paginate(page=page, count=count, error_out=False).items
     total = group_.count()
     data_group = []
@@ -134,17 +134,23 @@ def query_checkuser():
     group_admin = Group.query.filter(Group.admin_id == g.user["id"]).filter(Group.id == group_id).first()
     if not group_admin:
         return response(msg="您不是管理员，没有相关权限", status=400)
-    group_user = db.session.query(GroupUser, User).outerjoin(User, GroupUser.user_id == User.id).filter(
+    group_user = db.session.query(GroupUser, User.username).outerjoin(User, GroupUser.user_id == User.id).filter(
         group_id == GroupUser.group_id
     ).filter(
         GroupUser.user_allow == 0
     )
     if not kw:
-        group_user = group_user.filter(Group.detail.contains(kw))
+        group_user = group_user.filter(User.username.contains(kw))
     users = group_user.paginate(page=page, count=count, error_out=False).items
     total = group_user.count()
+    users_data = []
+    for user_ in users:
+        users_data.append({
+            **model_to_dict(user_[0]),
+            "username": user_[1]
+        })
     date = {
-        "users": model_to_dict(users),
+        "users": users_data,
         "total": total
     }
     return response(data=date, msg="成功返回所有数据")
