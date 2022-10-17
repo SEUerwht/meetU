@@ -78,7 +78,7 @@ def query_group():
 @group_api.get("/query_allgroup")
 def query_allgroup():
     page = int(request.args.get("page"))
-    count = int(request.args.get("count"))
+    count = int(request.args.get("total"))
     group_ = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id)
     groups = group_.paginate(page=page, count=count, error_out=False).items
     total = group_.count()
@@ -90,13 +90,13 @@ def query_allgroup():
         })
     return response(data={
         "groups": data_group,
-        "count": total
+        "total": total
     }, msg="查找所有群组成功")
 
 @group_api.get("query_groupbytype")
 def query_groupbytype():
     page = int(request.args.get("page"))
-    count = int(request.args.get("count"))
+    count = int(request.args.get("total"))
     group_type = request.args.get("group_type")
     group_ = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id).filter(
         Group.group_type == group_type
@@ -111,7 +111,7 @@ def query_groupbytype():
         })
     return response(data={
         "groups": data_group,
-        "count": total
+        "total": total
     }, msg="查找所有群组成功")
 
 @group_api.post("/check_request")
@@ -142,7 +142,7 @@ def query_checkuser():
     '''该接口是管理员查看申请加群列表的'''
     group_id = int(request.args.get("group_id"))
     page = int(request.args.get("page"))
-    count = request.args.get("count")
+    count = request.args.get("total")
     group_admin = Group.query.filter(Group.admin_id == g.user["id"]).first()
     if not group_admin:
         return response(msg="您不是管理员，没有相关权限")
@@ -155,7 +155,7 @@ def query_checkuser():
     total = group_user.count()
     date = {
         "users": model_to_dict(users),
-        "count": total
+        "total": total
     }
     return response(data=date, msg="成功返回所有数据")
 
@@ -178,7 +178,7 @@ def query_alluser():
     '''该接口是查看群组成员，管理员和组员都可以使用'''
     group_id = request.args.get("group_id")
     page = int(request.args.get("page"))
-    count = int(request.args.get("count"))
+    count = int(request.args.get("total"))
     group_ = Group.query.filter(Group.id == group_id).first()
     if not group_:
         return response(msg="该群组不存在")
@@ -199,7 +199,7 @@ def query_alluser():
         date_user.append(temp)
     return response(data={
         "date_user": date_user,
-        "count": total
+        "total": total
     }, msg="成功返回所有数据")
 
 @group_api.post("/join_group")
