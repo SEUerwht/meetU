@@ -1,10 +1,10 @@
 from flask import Blueprint, request, redirect, g
 from model.Message import Message
 from model.Message import MessageUser
+from model.User import User
 from util.response import response
 from util.response import model_to_dict
 from model.BaseModel import db
-from sqlalchemy import and_, not_, or_
 
 message_api = Blueprint("message_api", __name__, url_prefix='/message')
 
@@ -36,27 +36,16 @@ def get_sender_message():
     page = int(request.args["page"])  # 等价于page = int(request.args.get("page")),但get可以返回NULL,所以必备字段用中括号
     count = int(request.args["count"])
     kw = request.args.get("kw")  # 模糊查询
-    q = db.session.query(MessageUser, Message).outerjoin(
-        Message, MessageUser.message_id == Message.id
-    ).filter(
-        Message.s_id == s_id
-    )
+    q = Message.query.filter(Message.s_id == s_id)
     print(q)
     if kw:
         q = q.filter(
             Message.title.contains(kw)
         )
     messages = q.paginate(page=page, per_page=count, error_out=False).items
-    messages = [
-        {
-            **model_to_dict(e[0]),
-            **model_to_dict(e[1])
-        } for e in messages
-    ]
-    print(messages)
     total = q.count()
     data = {
-        "messages": messages,
+        "messages": model_to_dict(messages),
         "total": total
     }
     return response(data=data, msg="查询成功")
@@ -87,6 +76,27 @@ def get_receiver_message():
     total = q.count()
     data = {
         "messages": messages,
+        "total": total
+    }
+    return response(data=data, msg="查询成功")
+
+
+@message_api.get('/get_message_detail')
+def get_message_detail():
+    message_id = int(request.args["message_id"])
+    q = MessageUser.query.filter(MessageUser.message_id == message_id).all()
+    print(q)
+    users = []
+    for e in q:
+        users.append(e.to_id)
+    print(users)
+    q = User.query.filter(User.id.in_(users))
+    detail = q.all()
+    print(detail)
+    total = q.count()
+    print(total)
+    data = {
+        "users": model_to_dict(detail),
         "total": total
     }
     return response(data=data, msg="查询成功")
