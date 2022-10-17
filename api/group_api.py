@@ -83,9 +83,9 @@ def query_allgroup():
     group_type = request.args.get("group_type")
     kw = request.args.get("kw")
     group_ = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id)
-    if not group_type:
+    if group_type:
         group_ = group_.filter(Group.group_type == group_type)
-    if not kw:
+    if kw:
         group_ = group_.filter(Group.group_name.contains(kw))
     groups = group_.paginate(page=page, count=count, error_out=False).items
     total = group_.count()
