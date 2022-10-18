@@ -5,6 +5,7 @@ from model.User import User
 from util.response import response
 from util.response import model_to_dict
 from model.BaseModel import db
+from sqlalchemy import and_
 
 message_api = Blueprint("message_api", __name__, url_prefix='/message')
 
@@ -85,18 +86,30 @@ def get_receiver_message():
 def get_message_detail():
     message_id = int(request.args["message_id"])
     q = MessageUser.query.filter(MessageUser.message_id == message_id).all()
-    print(q)
+    # print(q)
     users = []
     for e in q:
         users.append(e.to_id)
-    print(users)
+    # print(users)
     q = User.query.filter(User.id.in_(users))
     detail = q.all()
-    print(detail)
+    # print(detail)
     total = q.count()
-    print(total)
+    # print(total)
     data = {
         "users": model_to_dict(detail),
         "total": total
     }
     return response(data=data, msg="查询成功")
+
+
+@message_api.get('/set_is_read')
+def set_is_read():
+    to_id = g.user["id"]
+    message_id = int(request.args["message_id"])
+    # print(message_id)
+    message = MessageUser.query.filter(MessageUser.message_id == message_id, MessageUser.to_id == to_id).first()
+    print(message)
+    message.is_read = 1
+    db.session.commit()
+    return response(msg="设置已读成功")
