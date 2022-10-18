@@ -58,9 +58,9 @@ def get_receiver_message():
     count = int(request.args["count"])
     kw = request.args.get("kw")  # 模糊查询
     q = db.session.query(MessageUser, Message).outerjoin(
-        Message, MessageUser.id == Message.message_id
+        Message, MessageUser.message_id == Message.id
     ).filter(
-        Message.to_id == to_id
+        MessageUser.to_id == to_id
     )
     if kw:
         q = q.filter(
