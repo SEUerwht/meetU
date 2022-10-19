@@ -38,7 +38,6 @@ def get_sender_message():
     count = int(request.args["count"])
     kw = request.args.get("kw")  # 模糊查询
     q = Message.query.filter(Message.s_id == s_id)
-    print(q)
     if kw:
         q = q.filter(
             Message.title.contains(kw)
@@ -58,8 +57,9 @@ def get_receiver_message():
     page = int(request.args["page"])  # 等价于page = int(request.args.get("page")),但get可以返回NULL,所以必备字段用中括号
     count = int(request.args["count"])
     kw = request.args.get("kw")  # 模糊查询
+    is_read = request.args.get("is_read")
     q = db.session.query(MessageUser, Message).outerjoin(
-        Message, MessageUser.message_id == Message.id
+        Message, MessageUser.message_id == Message.id,
     ).filter(
         MessageUser.to_id == to_id
     )
@@ -67,16 +67,22 @@ def get_receiver_message():
         q = q.filter(
             Message.title.contains(kw)
         )
+    if is_read:
+        q = q.filter(
+            MessageUser.is_read == is_read
+        )
     messages = q.paginate(page=page, per_page=count, error_out=False).items
-    messages = [
-        {
-            **model_to_dict(e[0]),
-            **model_to_dict(e[1])
-        } for e in messages
-    ]
+    msgs = []
+    for msg in messages:
+        s_name = User.query.filter(User.id == msg[1].s_id).first().username
+        msgs.append({
+            **model_to_dict(msg[0]),
+            **model_to_dict(msg[1]),
+            "s_name": s_name
+        })
     total = q.count()
     data = {
-        "messages": messages,
+        "messages": msgs,
         "total": total
     }
     return response(data=data, msg="查询成功")
@@ -103,13 +109,16 @@ def get_message_detail():
     return response(data=data, msg="查询成功")
 
 
-@message_api.get('/set_is_read')
-def set_is_read():
+@message_api.post('/read_messages')
+def read_messages():
     to_id = g.user["id"]
-    message_id = int(request.args["message_id"])
-    # print(message_id)
-    message = MessageUser.query.filter(MessageUser.message_id == message_id, MessageUser.to_id == to_id).first()
-    print(message)
-    message.is_read = 1
+    print(request.json)
+    message_ids = request.json.get("message_ids")
+    messages = MessageUser.query.filter(
+        MessageUser.message_id.in_(message_ids),
+        MessageUser.to_id == to_id
+    ).all()
+    for msg in messages:
+        msg.is_read = 1
     db.session.commit()
-    return response(msg="设置已读成功")
+    return response(msg="已读成功")

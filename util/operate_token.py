@@ -24,23 +24,20 @@ class OperateToken:
 
     def validate_token(self, token_):
         data = {'code': 40101}
-        print(token_)
         try:
             info = self.decode_token(token_)
         except:
             return response(data=data, msg="非法授权", status=401)
-        print(info)
         user_ = User.query.filter(User.id == info["id"]).first()
-        print(user_)
         if not user_:
             return response(data=data, msg="当前用户不存在", status=401)
         else:
             if not redis_db.get(token_):
                 return response(data=data, msg="用户授权已过期", status=401)
             g.user = {
-                "id": user_.id
+                "id": user_.id,
+                "username": user_.username
             }
-            print("111")
         return None
 
 

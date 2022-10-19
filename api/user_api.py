@@ -61,7 +61,6 @@ def register():
 
 @user_api.get("/logout")
 def layout():
-    print("1111")
     token_ = request.headers.get('token')
     redis_db.delete(token_)
     return response(msg="退出成功")
