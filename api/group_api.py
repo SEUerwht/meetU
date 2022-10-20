@@ -82,11 +82,14 @@ def query_allgroup():
     count = int(request.args.get("count"))
     group_type = request.args.get("group_type")
     kw = request.args.get("kw")
+    is_admin = request.args.get("is_admin")
     group_ = db.session.query(Group, User.username).outerjoin(User, Group.admin_id == User.id)
     if group_type:
         group_ = group_.filter(Group.group_type == group_type)
     if kw:
         group_ = group_.filter(Group.group_name.contains(kw))
+    if is_admin:
+        group_ = group_.filter(Group.admin_id == g.user["id"])
     groups = group_.paginate(page=page, count=count, error_out=False).items
     total = group_.count()
     data_group = []
@@ -101,12 +104,44 @@ def query_allgroup():
     }, msg="查找所有群组成功")
 
 
+@group_api.get("/query_user_group")
+def query_user_group():
+    page = int(request.args.get("page"))
+    count = int(request.args.get("count"))
+    group_type = request.args.get("group_type")
+    kw = request.args.get("kw")
+    group_ = db.session.query(GroupUser, Group).outerjoin(
+        Group, Group.id == GroupUser.group_id
+    ).filter(
+        GroupUser.user_id == g.user["id"],
+        GroupUser.user_allow == 1
+    )
+    if group_type:
+        group_ = group_.filter(Group.group_type == group_type)
+    if kw:
+        group_ = group_.filter(Group.group_name.contains(kw))
+    groups = group_.paginate(page=page, count=count, error_out=False).items
+    total = group_.count()
+    data_group = []
+    for group in groups:
+        user_ = User.query.filter(User.id == group[1].admin_id).first()
+        data_group.append({
+            **model_to_dict(group[0]),
+            **model_to_dict(group[1]),
+            "admin_name": user_.username
+        })
+    return response(data={
+        "groups": data_group,
+        "total": total
+    }, msg="查找所有群组成功")
+
+
 @group_api.post("/check_request")
 def check_request():
     '''该接口让管理员审核加群申请'''
     group_id = request.json.get("group_id")
     user_id = request.json.get("user_id")
-    user_allow = request.json.get("user_allow")
+    user_allow = int(request.json.get("user_allow"))
     admin_ = Group.query.filter(Group.id == group_id).first()
     if not admin_ or admin_.admin_id != g.user["id"]:
         return response(msg="没有查询到相应的群组或您没有权限", status=400)
@@ -114,7 +149,7 @@ def check_request():
         group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == user_id).first()
         db.session.delete(group_user)
         db.session.commit()
-        return response(msg="已拒绝该用户加群", status=400)
+        return response(msg="已拒绝该用户加群")
     else:
         group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == user_id).first()
         if not group_user:
@@ -139,7 +174,7 @@ def query_checkuser():
     ).filter(
         GroupUser.user_allow == 0
     )
-    if not kw:
+    if kw:
         group_user = group_user.filter(User.username.contains(kw))
     users = group_user.paginate(page=page, count=count, error_out=False).items
     total = group_user.count()
