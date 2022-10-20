@@ -147,7 +147,7 @@ def check_request():
         return response(msg="没有查询到相应的群组或您没有权限", status=400)
     if user_allow == 0:
         group_user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == user_id).first()
-        db.session.delete(group_user)
+        group_user.user_allow = 2
         db.session.commit()
         return response(msg="已拒绝该用户加群")
     else:
@@ -245,10 +245,14 @@ def join_group():
     user_id = g.user["id"]
     user_exist = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == g.user["id"]).first()
     if user_exist and user_exist.user_allow == 1:
-        return response(msg="已加入该群当中", status=400)
+        return response(msg="已加入该群当中")
     if user_exist and user_exist.user_allow == 0:
-        return response(msg="正在等待管理员的审核", status=400)
-    group_user = GroupUser(group_id = group_id, user_id=user_id)
+        return response(msg="正在等待管理员的审核")
+    if user_exist and user_exist.user_allow == 2:
+        user_exist.user_allow = 0
+        db.session.commit()
+        return response(msg="等待管理员审核")
+    group_user = GroupUser(group_id=group_id, user_id=user_id)
     db.session.add(group_user)
     db.session.commit()
     return response(msg="等待管理员审核")
