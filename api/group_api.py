@@ -141,7 +141,7 @@ def check_request():
     '''该接口让管理员审核加群申请'''
     group_id = request.json.get("group_id")
     user_id = request.json.get("user_id")
-    user_allow = int(request.json.get("user_allow"))
+    user_allow = request.json.get("user_allow")
     admin_ = Group.query.filter(Group.id == group_id).first()
     if not admin_ or admin_.admin_id != g.user["id"]:
         return response(msg="没有查询到相应的群组或您没有权限", status=400)
