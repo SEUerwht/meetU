@@ -19,13 +19,18 @@ def create_group():
     group_information = request.json.get("group_information")
     group_ = Group(group_name=group_name, admin_id=admin_id, group_information=group_information)
     db.session.add(group_)
+    db.session.flush()
+    group_admin = GroupUser(
+        group_id=group_.id, user_id=admin_id, user_allow=1
+    )
+    db.session.add(group_admin)
     db.session.commit()
     return response(msg="创建群组成功")
 
 @group_api.post("/update")
 def update_group():
     '''管理员更新群组信息'''
-    group_id = request.json.get("group_id")
+    group_id = request.json.get("id")
     group_name = request.json.get("group_name")
     group_position = request.json.get("group_position")
     group_public = request.json.get("group_public")
@@ -213,11 +218,6 @@ def query_alluser():
     group_ = Group.query.filter(Group.id == group_id).first()
     if not group_:
         return response(msg="该群组不存在")
-    admin_ = GroupUser.query.filter(GroupUser.user_id == group_.admin_id).first()
-    if not admin_:
-        user_ = GroupUser(group_id=group_id, user_id=group_.admin_id, user_allow=1)
-        db.session.add(user_)
-        db.session.commit()
     group_user = db.session.query(GroupUser, User.username).outerjoin(User, GroupUser.user_id == User.id).filter(GroupUser.group_id == group_id).filter(GroupUser.user_allow == 1)
     date_user = []
     users = group_user.paginate(page=page, count=count, error_out=False).items
@@ -229,7 +229,7 @@ def query_alluser():
         }
         date_user.append(temp)
     return response(data={
-        "date_user": date_user,
+        "users": date_user,
         "total": total
     }, msg="成功返回所有数据")
 

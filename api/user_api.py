@@ -69,16 +69,21 @@ def layout():
 def update():
     username = request.json.get("username")
     password = request.json.get("password")
+    age = request.json.get("age")
     gender = request.json.get("gender")
     phone = request.json.get("phone")
     interest = request.json.get("interest")
     profit = request.json.get("profit")
-    socail_media = request.json.get("social_media")
+    social_media = request.json.get("social_media")
     email = request.json.get("email")
     icon = request.files.get("icon")
-    file_url = file_deal.upload_file(icon)
-    file_deal.delete(file_url)
+    file_url = None
     user_ = User.query.filter(User.id == g.user["id"]).first()
+    if icon:
+        file_url = file_deal.upload_file(icon)
+        file_deal.delete(file_url)
+    else:
+        file_url = user_.icon
     # 判断是否是别人的名字
     user1 = User.query.filter(User.username == username).first()
     if user1 and user1.id != g.user["id"]:
@@ -92,12 +97,13 @@ def update():
     if user_:
         user_.username = username
         user_.password = password
+        user_.age = age
         user_.gender = gender
         user_.phone = phone
         user_.email = email
         user_.interest = interest
         user_.profit = profit
-        user_.social = socail_media
+        user_.social_media = social_media
         user_.icon = file_url
         db.session.commit()
     user_ = User.query.filter(User.id == g.user["id"]).first()
