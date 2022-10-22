@@ -1,7 +1,8 @@
-from flask import Flask, redirect, request
+from flask import Flask, request
 from api.user_api import user_api as user_api
 from api.group_api import group_api as group_api
 from api.message_api import message_api
+from api.event_api import event_api
 from model.BaseModel import db
 import config
 from util.response import response
@@ -16,6 +17,7 @@ db.create_all()
 app.register_blueprint(user_api)
 app.register_blueprint(group_api)
 app.register_blueprint(message_api)
+app.register_blueprint(event_api)
 
 
 @app.before_request
