@@ -43,7 +43,7 @@ def login():
         # }
         return response(data=data, msg="登录成功")
     else:
-        return response(msg="密码错误", status=401)
+        return response(msg="密码错误", status=400)
 
 
 @user_api.post("/register")
@@ -52,7 +52,7 @@ def register():
     password = request.json.get("password")
     user_temp = User.query.filter(User.username == username).first()
     if user_temp:
-        return response(msg="用户已存在")
+        return response(msg="用户已存在", status=400)
     user_ = User(username=username, password=password)
     db.session.add(user_)
     db.session.commit()
@@ -87,13 +87,13 @@ def update():
     # 判断是否是别人的名字
     user1 = User.query.filter(User.username == username).first()
     if user1 and user1.id != g.user["id"]:
-        return response(msg="当前用户名已存在", status=401)
+        return response(msg="当前用户名已存在", status=400)
     user2 = User.query.filter(User.id == user_.email).first()
     if user2 and user2.id != g.user["id"]:
-        return response(msg="当前邮箱已存在", status=401)
+        return response(msg="当前邮箱已存在", status=400)
     user3 = User.query.filter(User.id == user_.phone).first()
     if user3 and user3.id != g.user["id"]:
-        return response(msg="当前手机号已存在", status=401)
+        return response(msg="当前手机号已存在", status=400)
     if user_:
         user_.username = username
         user_.password = password

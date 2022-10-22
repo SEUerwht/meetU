@@ -9,10 +9,10 @@ def file_legal(filename):
 
 def upload_file(file):
     if not file:
-        return response(msg="没有上传头像", status=401)
+        return response(msg="没有上传头像", status=400)
     file_suffix = file.filename.split('.')[1].lower()
     if file_legal(file_suffix) == False:
-        return response(msg="该文件不合法", status=401)
+        return response(msg="该文件不合法", status=400)
     name_ = uuid.uuid4().hex
     save_name = f"{name_}.{file_suffix}"
     file.save(config.SAVE_FILE_PATH + save_name)

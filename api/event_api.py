@@ -15,6 +15,7 @@ event_api = Blueprint("event_api", __name__, url_prefix='/event')
 def create_event():
     '''创建一个活动'''
     event_name = request.json.get("event_name")
+    event_information = request.json.get("event_information")
     admin_id = g.user["id"]
     group_id = request.json.get("group_id")
     event_type = request.json.get("event_type")
@@ -24,7 +25,7 @@ def create_event():
         user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == g.user["id"]).filter(GroupUser.user_allow == 1).first()
         if not user:
             return response(msg="您不是群组人员，无法创立活动", status=400)
-    event = Event(event_name=event_name, admin_id=admin_id, group_id=group_id, event_type=event_type)
+    event = Event(event_name=event_name, event_information=event_information, admin_id=admin_id, group_id=group_id, event_type=event_type)
     db.session.add(event)
     db.session.commit()
     return response(msg="创建活动成功")
@@ -32,7 +33,7 @@ def create_event():
 @event_api.post("/update_event")
 def update_event():
     '''更新活动信息'''
-    event_id = request.json.get("event_id")
+    event_id = request.json.get("id")
     event_name = request.json.get("event_name")
     event_type = request.json.get("event_type")
     event_information = request.json.get("event_information")
@@ -72,17 +73,41 @@ def delete_event():
 @event_api.get("/query_event")
 def query_event():
     '''查找活动，可以是所有活动，管理员查看自己所管理的活动也是这个接口'''
+    event_id = request.args.get("event_id")
+    event = db.session.query(Event, User.username).outerjoin(
+        User, Event.admin_id == User.id
+    ).filter(Event.id == event_id).first()
+    if not event:
+        return response(msg="活动不存在", status=400)
+    group = Group.query.filter(
+        Group.id == event[0].group_id
+    ).first()
+    event_info = {
+        **model_to_dict(event[0]),
+        "admin_name": event[1],
+        "group_name": group.group_name
+    }
+    return response(data=event_info, msg="成功返回数据")
+
+@event_api.get("/query_events")
+def query_events():
+    '''查找活动，可以是所有活动，管理员查看自己所管理的活动也是这个接口'''
     group_id = request.args.get("group_id")
     event_type = request.args.get("event_type")
+    event_status = request.args.get("event_status")
     admin_id = request.args.get("admin_id")
     page = int(request.args.get("page"))
     count = int(request.args.get("count"))
     kw = request.args.get("kw")
-    events = db.session.query(Event, User.username).outerjoin(User, Event.admin_id == User.id).filter(Event.group_id == group_id)
+    events = db.session.query(Event, User.username).outerjoin(User, Event.admin_id == User.id)
+    if group_id:
+        events = events.filter(Event.group_id == group_id)
     if kw:
         events = events.filter(Event.event_name.contains(kw))
     if event_type:
         events = events.filter(Event.event_type == event_type)
+    if event_status:
+        events = events.filter(Event.event_status == event_status)
     if admin_id:
         events = events.filter(Event.admin_id == admin_id)
     event = events.paginate(page=page, count=count, error_out=False).items
@@ -94,7 +119,7 @@ def query_event():
             "admin_name": i[1]
         })
     return response(data={
-        "events_info": events_info,
+        "events": events_info,
         "count": total
     }, msg="成功返回数据")
 
@@ -135,6 +160,7 @@ def query_alluser():
 @event_api.post("/join_event")
 def join_event():
     '''加入活动'''
+    print(request.json)
     event_id = request.json.get("event_id")
     group_id = request.json.get("group_id")
     admin = Event.query.filter(Event.id == event_id).filter(Event.admin_id == g.user["id"]).first()
