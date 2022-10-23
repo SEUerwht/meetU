@@ -1,4 +1,4 @@
-IS_LOCOLHOST = True
+IS_LOCOLHOST = False
 SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@localhost:3306/meetu?charset=utf8mb4"
 NOT_CHECK_URL = [
     "/user/login",
