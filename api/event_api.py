@@ -19,13 +19,21 @@ def create_event():
     admin_id = g.user["id"]
     group_id = request.json.get("group_id")
     event_type = request.json.get("event_type")
+    event_img = request.json.get("event_img")
     # 判断创建人是否是该群里面的人员
     admin = Group.query.filter(Group.id == group_id).filter(Group.admin_id == g.user["id"]).first()
     if not admin:
         user = GroupUser.query.filter(GroupUser.group_id == group_id).filter(GroupUser.user_id == g.user["id"]).filter(GroupUser.user_allow == 1).first()
         if not user:
             return response(msg="您不是群组人员，无法创立活动", status=400)
-    event = Event(event_name=event_name, event_information=event_information, admin_id=admin_id, group_id=group_id, event_type=event_type)
+    event = Event(
+        event_name=event_name,
+        event_information=event_information,
+        admin_id=admin_id,
+        group_id=group_id,
+        event_type=event_type,
+        event_img=event_img
+    )
     db.session.add(event)
     db.session.commit()
     return response(msg="创建活动成功")

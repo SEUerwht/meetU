@@ -76,14 +76,12 @@ def update():
     profit = request.json.get("profit")
     social_media = request.json.get("social_media")
     email = request.json.get("email")
-    icon = request.files.get("icon")
-    file_url = None
+    icon = request.json.get("icon")
     user_ = User.query.filter(User.id == g.user["id"]).first()
+    file_url = user_.icon
     if icon:
         file_url = file_deal.upload_file(icon)
-        file_deal.delete(file_url)
-    else:
-        file_url = user_.icon
+        file_deal.delete(user_.icon)
     # 判断是否是别人的名字
     user1 = User.query.filter(User.username == username).first()
     if user1 and user1.id != g.user["id"]:
@@ -121,6 +119,10 @@ def get_help():
     return response(data={"url": config.HELP_PATH}, msg="成功获得帮助文档")
 
 
-
-
-
+@user_api.post("/upload_file")
+def upload_file():
+    file = request.files.get("file")
+    file_url = None
+    if file:
+        file_url = file_deal.upload_file(file)
+    return response(data={"file_url": file_url})

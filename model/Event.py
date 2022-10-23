@@ -11,3 +11,4 @@ class Event(BaseModel):
     event_information = db.Column(db.String(1024), nullable=True, comment="活动简介")
     event_type = db.Column(db.Integer, nullable=True, index=True, comment="活动类型")
     event_status = db.Column(db.Integer, nullable=False, default=1, index=True, comment="活动状态")
+    event_img = db.Column(db.String(255), nullable=True, comment="活动封面")
