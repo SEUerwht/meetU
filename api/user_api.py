@@ -78,9 +78,7 @@ def update():
     email = request.json.get("email")
     icon = request.json.get("icon")
     user_ = User.query.filter(User.id == g.user["id"]).first()
-    file_url = user_.icon
-    if icon:
-        file_url = file_deal.upload_file(icon)
+    if icon != user_.icon:
         file_deal.delete(user_.icon)
     # 判断是否是别人的名字
     user1 = User.query.filter(User.username == username).first()
@@ -102,7 +100,7 @@ def update():
         user_.interest = interest
         user_.profit = profit
         user_.social_media = social_media
-        user_.icon = file_url
+        user_.icon = icon
         db.session.commit()
     user_ = User.query.filter(User.id == g.user["id"]).first()
     return response(data=user_, msg="成功修改数据")
