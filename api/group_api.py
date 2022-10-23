@@ -15,13 +15,14 @@ group_api = Blueprint("group_api", __name__, url_prefix='/group')
 def create_group():
     '''本接口只对管理员开放，作用是创建群组'''
     group_name = request.json.get("group_name")
+    group_type = request.json.get("group_type")
     admin_id = g.user["id"]
     group_information = request.json.get("group_information")
     group_ = Group(group_name=group_name, admin_id=admin_id, group_information=group_information)
     db.session.add(group_)
     db.session.flush()
     group_admin = GroupUser(
-        group_id=group_.id, user_id=admin_id, user_allow=1
+        group_id=group_.id, user_id=admin_id, user_allow=1, group_type=group_type
     )
     db.session.add(group_admin)
     db.session.commit()
