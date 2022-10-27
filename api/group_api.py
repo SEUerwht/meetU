@@ -18,11 +18,11 @@ def create_group():
     group_type = request.json.get("group_type")
     admin_id = g.user["id"]
     group_information = request.json.get("group_information")
-    group_ = Group(group_name=group_name, admin_id=admin_id, group_information=group_information)
+    group_ = Group(group_name=group_name, admin_id=admin_id, group_information=group_information, group_type=group_type)
     db.session.add(group_)
     db.session.flush()
     group_admin = GroupUser(
-        group_id=group_.id, user_id=admin_id, user_allow=1, group_type=group_type
+        group_id=group_.id, user_id=admin_id, user_allow=1
     )
     db.session.add(group_admin)
     db.session.commit()
